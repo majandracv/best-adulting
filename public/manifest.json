@@ -1,0 +1,52 @@
+{
+  "name": "Best Adulting - Household Management Made Simple",
+  "short_name": "Best Adulting",
+  "description": "Track assets, manage tasks, price compare, and book local pros. Your complete household management solution.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#23284C",
+  "theme_color": "#23284C",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["productivity", "lifestyle", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Add Asset",
+      "short_name": "Add Asset",
+      "description": "Quickly add a new household asset",
+      "url": "/assets/add",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Tasks",
+      "short_name": "Tasks",
+      "description": "Check your household tasks",
+      "url": "/tasks",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}
