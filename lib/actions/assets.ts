@@ -2,10 +2,64 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import type { AssetInsert, AssetUpdate } from "@/lib/supabase/types"
+import { checkAssetLimit } from "@/lib/tier-management"
+
+export async function uploadAssetPhoto(formData: FormData) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("User not authenticated")
+  }
+
+  const file = formData.get("photo") as File
+  if (!file) {
+    throw new Error("No photo provided")
+  }
+
+  const fileExt = file.name.split(".").pop()
+  const fileName = `${user.id}/${Date.now()}.${fileExt}`
+
+  const { data, error } = await supabase.storage.from("assets").upload(fileName, file)
+
+  if (error) {
+    throw new Error(`Failed to upload photo: ${error.message}`)
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("assets").getPublicUrl(data.path)
+
+  return { success: true, url: publicUrl }
+}
 
 export async function createAsset(formData: FormData) {
   const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect("/auth/login")
+  }
+
+  const { data: userProfile } = await supabase.from("users_profile").select("tier").eq("id", user.id).single()
+
+  const { data: existingAssets } = await supabase
+    .from("assets")
+    .select("id")
+    .eq("household_id", formData.get("household_id") as string)
+
+  const userTier = userProfile?.tier || "free"
+  if (!checkAssetLimit(existingAssets?.length || 0, userTier)) {
+    throw new Error("Asset limit reached for your current plan")
+  }
 
   const roomId = formData.get("room_id") as string
   const householdId = formData.get("household_id") as string

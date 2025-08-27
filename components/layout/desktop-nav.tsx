@@ -1,54 +1,58 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useParams } from "next/navigation"
 import { Home, Package, CheckSquare, DollarSign, Calendar, User, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-
-const navItems = [
-  {
-    href: "/dashboard",
-    label: "Dashboard",
-    icon: Home,
-  },
-  {
-    href: "/assets",
-    label: "Assets",
-    icon: Package,
-  },
-  {
-    href: "/tasks",
-    label: "Tasks",
-    icon: CheckSquare,
-  },
-  {
-    href: "/compare",
-    label: "Price Compare",
-    icon: DollarSign,
-  },
-  {
-    href: "/booking",
-    label: "Book Pros",
-    icon: Calendar,
-  },
-  {
-    href: "/profile",
-    label: "Profile",
-    icon: User,
-  },
-]
+import { useTranslations } from "next-intl"
 
 export function DesktopNav() {
   const pathname = usePathname()
+  const params = useParams()
   const router = useRouter()
+  const t = useTranslations("navigation")
+  const locale = params.locale as string
+
+  const navItems = [
+    {
+      href: `/${locale}/dashboard`,
+      label: t("dashboard"),
+      icon: Home,
+    },
+    {
+      href: `/${locale}/assets`,
+      label: t("assets"),
+      icon: Package,
+    },
+    {
+      href: `/${locale}/tasks`,
+      label: t("tasks"),
+      icon: CheckSquare,
+    },
+    {
+      href: `/${locale}/shop`,
+      label: t("priceCompare"),
+      icon: DollarSign,
+    },
+    {
+      href: `/${locale}/booking`,
+      label: t("booking"),
+      icon: Calendar,
+    },
+    {
+      href: `/${locale}/profile`,
+      label: t("profile"),
+      icon: User,
+    },
+  ]
 
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push("/auth/login")
+    router.push(`/${locale}/auth/login`)
   }
 
   return (
@@ -89,7 +93,7 @@ export function DesktopNav() {
           className="w-full justify-start text-indigo/70 hover:text-indigo hover:bg-indigo/5"
         >
           <LogOut className="w-5 h-5 mr-3" />
-          Sign Out
+          {t("signOut")}
         </Button>
       </div>
     </nav>

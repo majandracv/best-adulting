@@ -1,0 +1,116 @@
+{
+  "navigation": {
+    "dashboard": "Panel",
+    "assets": "Activos",
+    "tasks": "Tareas",
+    "priceCompare": "Comparar Precios",
+    "booking": "Contratar",
+    "profile": "Perfil",
+    "signOut": "Cerrar Sesión"
+  },
+  "dashboard": {
+    "welcome": "¡Bienvenido de vuelta!",
+    "description": "Esto es lo que está pasando en tu hogar",
+    "quickAdd": "Agregar Rápido",
+    "stats": {
+      "assetsTracked": "Activos Rastreados",
+      "tasksPending": "Tareas Pendientes",
+      "moneySaved": "Dinero Ahorrado"
+    },
+    "quickActions": {
+      "title": "Acciones Rápidas",
+      "addAsset": {
+        "title": "Agregar Activo",
+        "description": "Escanea o agrega un nuevo artículo del hogar"
+      },
+      "createTask": {
+        "title": "Crear Tarea",
+        "description": "Programa mantenimiento o quehaceres"
+      },
+      "comparePrices": {
+        "title": "Comparar Precios",
+        "description": "Encuentra las mejores ofertas"
+      },
+      "bookPro": {
+        "title": "Contratar Pro",
+        "description": "Programa ayuda profesional"
+      }
+    },
+    "recentActivity": {
+      "title": "Actividad Reciente",
+      "description": "Tus últimas actualizaciones del hogar",
+      "noActivity": "Aún no hay actividad",
+      "getStarted": "Comienza agregando tu primer activo o creando una tarea"
+    },
+    "dueThisWeek": "Vence esta semana",
+    "recentlyDone": "Recientemente completado",
+    "spendingThisMonth": "Gastos este mes"
+  },
+  "assets": {
+    "new": {
+      "title": "Agregar Nuevo Activo",
+      "description": "Toma una foto o ingresa los detalles manualmente",
+      "photoUpload": "Subir Foto",
+      "name": "Nombre del Activo",
+      "type": "Tipo",
+      "brand": "Marca",
+      "model": "Modelo",
+      "serial": "Número de Serie",
+      "purchaseDate": "Fecha de Compra",
+      "warrantyExpiry": "Vencimiento de Garantía",
+      "room": "Habitación",
+      "save": "Guardar Activo"
+    },
+    "details": {
+      "relatedTasks": "Tareas Relacionadas",
+      "costLog": "Registro de Costos",
+      "noTasks": "Aún no hay tareas",
+      "noCosts": "No hay costos registrados"
+    }
+  },
+  "tasks": {
+    "title": "Tareas",
+    "complete": "Completar",
+    "snooze": "Posponer",
+    "noTasks": "Aún no hay tareas"
+  },
+  "booking": {
+    "title": "Contratar Profesionales",
+    "providers": "Proveedores de Servicios",
+    "requestBooking": "Solicitar Reserva",
+    "noProviders": "No hay proveedores disponibles"
+  },
+  "shop": {
+    "title": "Comparación de Precios",
+    "search": "Buscar productos",
+    "freeLimit": "Los usuarios gratuitos pueden comparar hasta 2 ofertas",
+    "proFeature": "Los usuarios Pro obtienen hasta 6 ofertas",
+    "upgrade": "Actualizar a Pro"
+  },
+  "tiers": {
+    "free": {
+      "name": "Gratuito",
+      "assetLimit": "Hasta 5 activos",
+      "priceCompare": "2 comparaciones de precios"
+    },
+    "pro": {
+      "name": "Pro",
+      "unlimited": "Activos ilimitados",
+      "priceCompare": "6 comparaciones de precios"
+    },
+    "upgradeDialog": {
+      "title": "Actualizar a Pro",
+      "description": "Has alcanzado el límite de 5 activos en el plan Gratuito. Actualiza a Pro para activos ilimitados y más funciones.",
+      "upgrade": "Actualizar Ahora",
+      "cancel": "Cancelar"
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar"
+  }
+}

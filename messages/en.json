@@ -1,0 +1,116 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "assets": "Assets",
+    "tasks": "Tasks",
+    "priceCompare": "Price Compare",
+    "booking": "Book Pros",
+    "profile": "Profile",
+    "signOut": "Sign Out"
+  },
+  "dashboard": {
+    "welcome": "Welcome back!",
+    "description": "Here's what's happening with your household",
+    "quickAdd": "Quick Add",
+    "stats": {
+      "assetsTracked": "Assets Tracked",
+      "tasksPending": "Tasks Pending",
+      "moneySaved": "Money Saved"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "addAsset": {
+        "title": "Add Asset",
+        "description": "Scan or add a new household item"
+      },
+      "createTask": {
+        "title": "Create Task",
+        "description": "Schedule maintenance or chores"
+      },
+      "comparePrices": {
+        "title": "Compare Prices",
+        "description": "Find the best deals"
+      },
+      "bookPro": {
+        "title": "Book Pro",
+        "description": "Schedule professional help"
+      }
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "description": "Your latest household updates",
+      "noActivity": "No activity yet",
+      "getStarted": "Start by adding your first asset or creating a task"
+    },
+    "dueThisWeek": "Due this week",
+    "recentlyDone": "Recently done",
+    "spendingThisMonth": "Spending this month"
+  },
+  "assets": {
+    "new": {
+      "title": "Add New Asset",
+      "description": "Take a photo or enter details manually",
+      "photoUpload": "Upload Photo",
+      "name": "Asset Name",
+      "type": "Type",
+      "brand": "Brand",
+      "model": "Model",
+      "serial": "Serial Number",
+      "purchaseDate": "Purchase Date",
+      "warrantyExpiry": "Warranty Expiry",
+      "room": "Room",
+      "save": "Save Asset"
+    },
+    "details": {
+      "relatedTasks": "Related Tasks",
+      "costLog": "Cost Log",
+      "noTasks": "No tasks yet",
+      "noCosts": "No costs recorded"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "complete": "Complete",
+    "snooze": "Snooze",
+    "noTasks": "No tasks yet"
+  },
+  "booking": {
+    "title": "Book Professionals",
+    "providers": "Service Providers",
+    "requestBooking": "Request Booking",
+    "noProviders": "No providers available"
+  },
+  "shop": {
+    "title": "Price Comparison",
+    "search": "Search products",
+    "freeLimit": "Free users can compare up to 2 offers",
+    "proFeature": "Pro users get up to 6 offers",
+    "upgrade": "Upgrade to Pro"
+  },
+  "tiers": {
+    "free": {
+      "name": "Free",
+      "assetLimit": "Up to 5 assets",
+      "priceCompare": "2 price comparisons"
+    },
+    "pro": {
+      "name": "Pro",
+      "unlimited": "Unlimited assets",
+      "priceCompare": "6 price comparisons"
+    },
+    "upgradeDialog": {
+      "title": "Upgrade to Pro",
+      "description": "You've reached the limit of 5 assets on the Free plan. Upgrade to Pro for unlimited assets and more features.",
+      "upgrade": "Upgrade Now",
+      "cancel": "Cancel"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit"
+  }
+}

@@ -1,10 +1,12 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+export async function updateSession(request: NextRequest, response?: NextResponse) {
+  let supabaseResponse =
+    response ||
+    NextResponse.next({
+      request,
+    })
 
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
@@ -33,15 +35,20 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const pathname = request.nextUrl.pathname
+  const locale = pathname.split("/")[1] // Extract locale from path
+  const isLocaleRoute = ["en", "es"].includes(locale)
+  const pathWithoutLocale = isLocaleRoute ? pathname.slice(3) : pathname // Remove /en or /es
+
   if (
-    request.nextUrl.pathname !== "/" &&
+    pathWithoutLocale !== "/" &&
     !user &&
-    !request.nextUrl.pathname.startsWith("/auth") &&
-    !request.nextUrl.pathname.startsWith("/api")
+    !pathWithoutLocale.startsWith("/auth") &&
+    !pathWithoutLocale.startsWith("/api")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
-    url.pathname = "/auth/login"
+    url.pathname = isLocaleRoute ? `/${locale}/auth/login` : "/auth/login"
     return NextResponse.redirect(url)
   }
 

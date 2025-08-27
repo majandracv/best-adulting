@@ -4,6 +4,33 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import type { TaskInsert, TaskUpdate, TaskLogInsert } from "@/lib/supabase/types"
 
+export async function snoozeTask(taskId: string, days = 1) {
+  const supabase = await createClient()
+
+  const { data: task, error: taskError } = await supabase.from("tasks").select("*").eq("id", taskId).single()
+
+  if (taskError || !task) {
+    throw new Error("Task not found")
+  }
+
+  const currentDue = task.next_due ? new Date(task.next_due) : new Date()
+  const newDue = new Date(currentDue.getTime() + days * 24 * 60 * 60 * 1000)
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({ next_due: newDue.toISOString().split("T")[0] })
+    .eq("id", taskId)
+
+  if (error) {
+    throw new Error(`Failed to snooze task: ${error.message}`)
+  }
+
+  revalidatePath(`/households/${task.household_id}`)
+  revalidatePath("/tasks")
+  revalidatePath("/dashboard")
+  return { success: true }
+}
+
 export async function createTask(formData: FormData) {
   const supabase = await createClient()
 
