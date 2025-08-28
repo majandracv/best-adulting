@@ -6,6 +6,36 @@ import { redirect } from "next/navigation"
 import type { AssetInsert, AssetUpdate } from "@/lib/supabase/types"
 import { checkAssetLimit } from "@/lib/tier-management"
 
+// Helper function to automatically create household for new users
+async function ensureHouseholdForUser(supabase: any, userId: string) {
+  // Do we already belong to a household?
+  const { data: existing, error: existErr } = await supabase
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", userId)
+    .limit(1)
+    .single()
+
+  if (existing?.household_id) return existing.household_id
+
+  // If not, create one and add membership as owner
+  const { data: hh, error: hhErr } = await supabase
+    .from("households")
+    .insert({ name: "My Household" })
+    .select("id")
+    .single()
+
+  if (hhErr) throw new Error(`Create household failed: ${hhErr.message}`)
+
+  const { error: memErr } = await supabase
+    .from("household_members")
+    .insert({ household_id: hh.id, user_id: userId, role: "owner" })
+
+  if (memErr) throw new Error(`Create membership failed: ${memErr.message}`)
+
+  return hh.id
+}
+
 export async function uploadAssetPhoto(formData: FormData) {
   const supabase = await createClient()
 
@@ -44,27 +74,24 @@ export async function createAssetMinimal(data: { name: string; room?: string; br
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user) return false
-    // Find household for user (adjust to your schema)
-    const { data: hh } = await supabase
-      .from("household_members")
-      .select("household_id")
-      .eq("user_id", user.id)
-      .limit(1)
-      .single()
-    if (!hh) return false
+    if (!user) return { ok: false, error: "Not authenticated" }
+
+    const householdId = await ensureHouseholdForUser(supabase, user.id)
+
     const { error } = await supabase.from("assets").insert({
-      household_id: hh.household_id,
+      household_id: householdId,
       name: data.name,
       room: data.room ?? null,
       brand: data.brand ?? null,
       model: data.model ?? null,
     })
-    if (error) return false
+
+    if (error) return { ok: false, error: error.message }
+
     revalidatePath("/assets")
-    return true
-  } catch {
-    return false
+    return { ok: true }
+  } catch (e: any) {
+    return { ok: false, error: e?.message ?? "Unknown error" }
   }
 }
 
