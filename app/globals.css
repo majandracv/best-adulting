@@ -2,18 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Brand variables */
+/* ----- Design tokens (compatible with your tailwind.config.js) ----- */
 :root {
-  --ba-indigo-900: #23284C;
-  --ba-lavender-300: #CCCBFB;
-  --ba-aqua-300: #A9DFE6;
-  --ba-lime-300: #BCE17A;
-  --ba-lemon-300: #E4E16D;
-  --ba-mustard-400: #F1D44B;
-  --ba-peach-300: #EAAB81;
+  /* app theme tokens used in config (safe defaults) */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --primary: 232 35% 23%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 98%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 20% 96%;
+  --muted-foreground: 222 13% 35%;
+  --accent: 210 20% 96%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 232 35% 23%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --radius: 0.75rem;
+
+  /* Best Adulting brand (rgb() expects space-separated numbers) */
+  --brand-indigo: 35 40 76;   /* #23284C */
+  --brand-lavender: 204 203 251; /* #CCCBFB */
+  --brand-aqua: 169 223 230;  /* #A9DFE6 */
+  --brand-lime: 188 225 122;  /* #BCE17A */
+  --brand-lemon: 228 225 109; /* #E4E16D */
+  --brand-mustard: 241 212 75;/* #F1D44B */
+  --brand-peach: 234 171 129; /* #EAAB81 */
+
+  /* charts (optional) */
+  --chart-1: 232 35% 23%;
+  --chart-2: 189 94% 43%;
+  --chart-3: 142 71% 45%;
+  --chart-4: 48 96% 53%;
+  --chart-5: 17 88% 61%;
 }
 
-body {
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  color: var(--ba-indigo-900);
-}
+html, body { height: 100%; }
+body { color: rgb(var(--brand-indigo)); }
