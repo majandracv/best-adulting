@@ -1,75 +1,110 @@
-"use client"
+import { redirect } from "next/navigation"
+import { createServerClient } from "@/lib/supabase/server"
 
-import type React from "react"
+// Helper: get or create a default household
+async function ensureHouseholdForUser(supabase: any, userId: string) {
+  const { data: existing } = await supabase
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", userId)
+    .limit(1)
+    .single()
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { createAsset } from "@/lib/actions/assets"
+  if (existing?.household_id) return existing.household_id
 
-export default function NewAssetPage() {
-  const r = useRouter()
-  const [form, setForm] = useState({ name: "", room: "", brand: "", model: "" })
-  const [loading, setLoading] = useState(false)
-  const [err, setErr] = useState<string | null>(null)
+  const { data: hh, error: hhErr } = await supabase
+    .from("households")
+    .insert({ name: "My Household" })
+    .select("id")
+    .single()
+  if (hhErr) throw new Error(hhErr.message)
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [e.target.name]: e.target.value })
+  const { error: memErr } = await supabase
+    .from("household_members")
+    .insert({ household_id: hh.id, user_id: userId, role: "owner" })
+  if (memErr) throw new Error(memErr.message)
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErr(null)
-    setLoading(true)
-    const res = await createAsset(form)
-    setLoading(false)
-    if (res.ok) {
-      r.push("/assets")
+  return hh.id
+}
+
+async function createAction(formData: FormData) {
+  "use server"
+  const supabase = await createServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) redirect("/auth/login")
+
+  const name = (formData.get("name") || "").toString().trim()
+  const roomName = (formData.get("room") || "").toString().trim() || null
+  const brand = (formData.get("brand") || "").toString().trim() || null
+  const model = (formData.get("model") || "").toString().trim() || null
+
+  if (!name) {
+    throw new Error("Name is required")
+  }
+
+  const householdId = await ensureHouseholdForUser(supabase, user.id)
+
+  let roomId = null
+  if (roomName) {
+    // First try to find existing room
+    const { data: existingRoom } = await supabase
+      .from("rooms")
+      .select("id")
+      .eq("household_id", householdId)
+      .eq("name", roomName)
+      .single()
+
+    if (existingRoom) {
+      roomId = existingRoom.id
     } else {
-      setErr(res.error ?? "Failed to create asset")
+      // Create new room if it doesn't exist
+      const { data: newRoom, error: roomError } = await supabase
+        .from("rooms")
+        .insert({ household_id: householdId, name: roomName })
+        .select("id")
+        .single()
+
+      if (roomError) {
+        throw new Error(`Room creation failed: ${roomError.message}`)
+      }
+      roomId = newRoom.id
     }
   }
 
+  const insertData = {
+    household_id: householdId,
+    name,
+    room_id: roomId,
+    brand,
+    model,
+  }
+
+  console.log("[v0] Inserting asset data:", insertData)
+
+  const { error } = await supabase.from("assets").insert(insertData)
+
+  if (error) {
+    console.log("[v0] Insert error:", error)
+    throw new Error(`Insert failed: ${error.message}`)
+  }
+
+  redirect("/assets")
+}
+
+export default async function NewAssetPage() {
   return (
     <div className="p-6 max-w-xl">
       <h1 className="text-2xl font-semibold mb-4">Add Asset</h1>
-
-      <form onSubmit={onSubmit} className="space-y-3">
-        <input
-          name="name"
-          placeholder="Name (e.g., Fridge)"
-          className="border rounded px-3 py-2 w-full"
-          value={form.name}
-          onChange={onChange}
-          required
-        />
-        <input
-          name="room"
-          placeholder="Room (e.g., Kitchen)"
-          className="border rounded px-3 py-2 w-full"
-          value={form.room}
-          onChange={onChange}
-        />
-        <input
-          name="brand"
-          placeholder="Brand"
-          className="border rounded px-3 py-2 w-full"
-          value={form.brand}
-          onChange={onChange}
-        />
-        <input
-          name="model"
-          placeholder="Model"
-          className="border rounded px-3 py-2 w-full"
-          value={form.model}
-          onChange={onChange}
-        />
-
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-indigo-600 text-white px-4 py-2 disabled:opacity-60"
-        >
-          {loading ? "Saving…" : "Save"}
+      <form action={createAction} className="space-y-3">
+        <input name="name" placeholder="Name (e.g., Fridge)" className="border rounded px-3 py-2 w-full" required />
+        <input name="room" placeholder="Room (e.g., Kitchen)" className="border rounded px-3 py-2 w-full" />
+        <input name="brand" placeholder="Brand" className="border rounded px-3 py-2 w-full" />
+        <input name="model" placeholder="Model" className="border rounded px-3 py-2 w-full" />
+        <button type="submit" className="rounded-md bg-indigo-600 text-white px-4 py-2">
+          Save
         </button>
       </form>
     </div>
