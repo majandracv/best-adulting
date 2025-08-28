@@ -65,11 +65,11 @@ export default function SignUpPage() {
               <form onSubmit={handleSignUp}>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="email" className="text-indigo">
+                    <Label htmlFor="signup-email" className="text-indigo">
                       Email
                     </Label>
                     <Input
-                      id="email"
+                      id="signup-email"
                       type="email"
                       placeholder="you@example.com"
                       required
@@ -79,11 +79,11 @@ export default function SignUpPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="password" className="text-indigo">
+                    <Label htmlFor="signup-password" className="text-indigo">
                       Password
                     </Label>
                     <Input
-                      id="password"
+                      id="signup-password"
                       type="password"
                       required
                       value={password}
@@ -92,11 +92,11 @@ export default function SignUpPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="repeat-password" className="text-indigo">
+                    <Label htmlFor="signup-repeat-password" className="text-indigo">
                       Confirm Password
                     </Label>
                     <Input
-                      id="repeat-password"
+                      id="signup-repeat-password"
                       type="password"
                       required
                       value={repeatPassword}

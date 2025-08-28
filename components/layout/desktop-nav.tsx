@@ -1,58 +1,28 @@
 "use client"
-
 import Link from "next/link"
-import { usePathname, useParams } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { Home, Package, CheckSquare, DollarSign, Calendar, User, LogOut } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { useTranslations } from "next-intl"
+
+const links = [
+  { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/assets", label: "Assets", icon: Package },
+  { href: "/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/shop", label: "Price Compare", icon: DollarSign },
+  { href: "/booking", label: "Booking", icon: Calendar },
+  { href: "/profile", label: "Profile", icon: User },
+]
 
 export function DesktopNav() {
-  const pathname = usePathname()
-  const params = useParams()
+  const pathname = usePathname() ?? ""
   const router = useRouter()
-  const t = useTranslations("navigation")
-  const locale = params.locale as string
-
-  const navItems = [
-    {
-      href: `/${locale}/dashboard`,
-      label: t("dashboard"),
-      icon: Home,
-    },
-    {
-      href: `/${locale}/assets`,
-      label: t("assets"),
-      icon: Package,
-    },
-    {
-      href: `/${locale}/tasks`,
-      label: t("tasks"),
-      icon: CheckSquare,
-    },
-    {
-      href: `/${locale}/shop`,
-      label: t("priceCompare"),
-      icon: DollarSign,
-    },
-    {
-      href: `/${locale}/booking`,
-      label: t("booking"),
-      icon: Calendar,
-    },
-    {
-      href: `/${locale}/profile`,
-      label: t("profile"),
-      icon: User,
-    },
-  ]
 
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push(`/${locale}/auth/login`)
+    router.push("/auth/login")
   }
 
   return (
@@ -64,18 +34,17 @@ export function DesktopNav() {
 
       <div className="flex-1 px-4">
         <ul className="space-y-2">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href
+          {links.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
             const Icon = item.icon
 
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                    isActive ? "bg-indigo text-white" : "text-indigo/70 hover:text-indigo hover:bg-indigo/5",
-                  )}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive ? "bg-indigo text-white" : "text-indigo/70 hover:text-indigo hover:bg-indigo/5"
+                  }`}
                 >
                   <Icon className="w-5 h-5" />
                   {item.label}
@@ -93,7 +62,7 @@ export function DesktopNav() {
           className="w-full justify-start text-indigo/70 hover:text-indigo hover:bg-indigo/5"
         >
           <LogOut className="w-5 h-5 mr-3" />
-          {t("signOut")}
+          Sign Out
         </Button>
       </div>
     </nav>

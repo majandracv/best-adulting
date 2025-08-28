@@ -1,105 +1,74 @@
 "use client"
-
+import { useState } from "react"
 import type React from "react"
 
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
+import { createClient } from "@/lib/supabase/client" // our browser client
 import { useRouter } from "next/navigation"
-import { useState } from "react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const supabase = createClient()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
     setError(null)
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
-        },
-      })
-      if (error) throw error
-      router.push("/dashboard")
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
-    } finally {
-      setIsLoading(false)
-    }
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setLoading(false)
+    if (error) return setError(error.message)
+    router.replace("/dashboard")
   }
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-gradient-to-br from-lavender/10 to-aqua/10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-indigo font-heading">Best Adulting</h1>
-            <p className="text-indigo/70 mt-2">Welcome back to your household hub</p>
-          </div>
-          <Card className="border-indigo/10 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-2xl text-indigo">Sign In</CardTitle>
-              <CardDescription className="text-indigo/70">Enter your email to access your household</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin}>
-                <div className="flex flex-col gap-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="email" className="text-indigo">
-                      Email
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="you@example.com"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="border-indigo/20 focus:border-aqua"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="password" className="text-indigo">
-                      Password
-                    </Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="border-indigo/20 focus:border-aqua"
-                    />
-                  </div>
-                  {error && <p className="text-sm text-red-500">{error}</p>}
-                  <Button type="submit" className="w-full bg-indigo hover:bg-indigo/90 text-white" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
-                  </Button>
-                </div>
-                <div className="mt-4 text-center text-sm text-indigo/70">
-                  Don&apos;t have an account?{" "}
-                  <Link href="/auth/sign-up" className="text-aqua hover:text-aqua/80 underline underline-offset-4">
-                    Sign up
-                  </Link>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+    <div className="mx-auto max-w-md p-6">
+      <h1 className="text-3xl font-semibold text-center mb-2">Best Adulting</h1>
+      <p className="text-center text-muted-foreground mb-8">Welcome back to your household hub</p>
+      <form onSubmit={onSubmit} className="space-y-4 bg-card border rounded-xl p-6">
+        <div className="space-y-2">
+          <label htmlFor="login-email" className="text-sm font-medium">
+            Email
+          </label>
+          <input
+            id="login-email"
+            required
+            type="email"
+            className="w-full rounded-md border px-3 py-2"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
-      </div>
+        <div className="space-y-2">
+          <label htmlFor="login-password" className="text-sm font-medium">
+            Password
+          </label>
+          <input
+            id="login-password"
+            required
+            type="password"
+            className="w-full rounded-md border px-3 py-2"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <button
+          type="submit"
+          className="w-full rounded-md bg-[#23284c] text-white py-2 font-medium disabled:opacity-60 hover:bg-[#1a1f3a] transition-colors"
+          disabled={loading}
+        >
+          {loading ? "Signing in…" : "Sign in"}
+        </button>
+        <p className="text-sm text-center text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <a href="/auth/sign-up" className="underline">
+            Sign up
+          </a>
+        </p>
+      </form>
     </div>
   )
 }

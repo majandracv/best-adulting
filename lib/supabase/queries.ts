@@ -72,6 +72,40 @@ export async function getAssetById(id: string) {
   return data
 }
 
+export async function getAssetsForCurrentUser() {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return null
+
+  // Get user's household first
+  const { data: household } = await supabase
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", user.id)
+    .limit(1)
+    .single()
+
+  if (!household) return null
+
+  const { data, error } = await supabase
+    .from("assets")
+    .select(`
+      *,
+      rooms(name)
+    `)
+    .eq("household_id", household.household_id)
+    .order("created_at", { ascending: false })
+
+  if (error) throw error
+  return data?.map((asset) => ({
+    ...asset,
+    room: asset.rooms?.name || "No room",
+  }))
+}
+
 // Task queries
 export async function getHouseholdTasks(householdId: string, includeArchived = false) {
   const supabase = await createClient()

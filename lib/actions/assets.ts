@@ -38,6 +38,36 @@ export async function uploadAssetPhoto(formData: FormData) {
   return { success: true, url: publicUrl }
 }
 
+export async function createAssetMinimal(data: { name: string; room?: string; brand?: string; model?: string }) {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return false
+    // Find household for user (adjust to your schema)
+    const { data: hh } = await supabase
+      .from("household_members")
+      .select("household_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .single()
+    if (!hh) return false
+    const { error } = await supabase.from("assets").insert({
+      household_id: hh.household_id,
+      name: data.name,
+      room: data.room ?? null,
+      brand: data.brand ?? null,
+      model: data.model ?? null,
+    })
+    if (error) return false
+    revalidatePath("/assets")
+    return true
+  } catch {
+    return false
+  }
+}
+
 export async function createAsset(formData: FormData) {
   const supabase = await createClient()
 

@@ -7,20 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Package, DollarSign, Wrench, Edit } from "lucide-react"
-import { getTranslations } from "next-intl/server"
 import Image from "next/image"
 
 export default async function AssetDetailsPage({
-  params: { locale, id },
+  params: { id },
 }: {
-  params: { locale: string; id: string }
+  params: { id: string }
 }) {
   const supabase = await createClient()
-  const t = await getTranslations("assets.details")
 
   const { data, error } = await supabase.auth.getUser()
   if (error || !data?.user) {
-    redirect(`/${locale}/auth/login`)
+    redirect("/auth/login")
   }
 
   // Get asset with related data
@@ -122,7 +120,7 @@ export default async function AssetDetailsPage({
               <CardHeader>
                 <CardTitle className="text-indigo flex items-center gap-2">
                   <Wrench className="w-5 h-5" />
-                  {t("relatedTasks")}
+                  Related Tasks
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -143,7 +141,7 @@ export default async function AssetDetailsPage({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-indigo/60">{t("noTasks")}</p>
+                  <p className="text-indigo/60">No tasks found for this asset</p>
                 )}
               </CardContent>
             </Card>
@@ -155,7 +153,7 @@ export default async function AssetDetailsPage({
               <CardHeader>
                 <CardTitle className="text-indigo flex items-center gap-2">
                   <DollarSign className="w-5 h-5" />
-                  {t("costLog")}
+                  Cost Log
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -173,7 +171,7 @@ export default async function AssetDetailsPage({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-indigo/60">{t("noCosts")}</p>
+                  <p className="text-indigo/60">No costs recorded for this asset</p>
                 )}
               </CardContent>
             </Card>
