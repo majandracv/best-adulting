@@ -6,8 +6,14 @@ import { Container } from "@/components/layout/container"
 import { getBookingsForHousehold } from "@/lib/actions/bookings"
 import { BookingsList } from "@/components/booking/bookings-list"
 
+export const dynamic = "force-dynamic"
+
 export default async function BookingsPage() {
   const supabase = createServerClient()
+
+  if (!supabase) {
+    redirect("/auth/login")
+  }
 
   const { data, error } = await supabase.auth.getUser()
   if (error || !data?.user) {
