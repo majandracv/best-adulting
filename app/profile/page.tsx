@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { ProfileTabs } from "@/components/profile/profile-tabs"
 
+export const dynamic = "force-dynamic"
+
 export default async function ProfilePage() {
   const cookieStore = cookies()
   const supabase = createServerClient(cookieStore)

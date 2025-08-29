@@ -28,6 +28,8 @@ import { BookingStatusWidget } from "@/components/dashboard/booking-status-widge
 import { PriceTrackingWidget } from "@/components/dashboard/price-tracking-widget"
 import { SmartInsightsWidget } from "@/components/dashboard/smart-insights-widget"
 
+export const dynamic = "force-dynamic"
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 

@@ -7,6 +7,8 @@ import { ProviderProfile } from "@/components/booking/provider-profile"
 import { BookingForm } from "@/components/booking/booking-form"
 import { notFound } from "next/navigation"
 
+export const dynamic = "force-dynamic"
+
 export default async function ProviderDetailPage({
   params,
 }: {

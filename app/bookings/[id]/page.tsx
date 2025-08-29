@@ -6,6 +6,8 @@ import { getBooking } from "@/lib/actions/bookings"
 import { BookingDetail } from "@/components/booking/booking-detail"
 import { notFound } from "next/navigation"
 
+export const dynamic = "force-dynamic"
+
 export default async function BookingDetailPage({
   params,
 }: {

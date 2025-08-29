@@ -6,6 +6,8 @@ import { Container } from "@/components/layout/container"
 import { TaskTemplateGrid } from "@/components/tasks/task-template-grid"
 import { TASK_TEMPLATES } from "@/lib/task-templates"
 
+export const dynamic = "force-dynamic"
+
 export default async function TaskTemplatesPage() {
   const supabase = await createClient()
 

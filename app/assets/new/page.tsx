@@ -95,6 +95,8 @@ async function createAction(formData: FormData) {
   redirect("/assets")
 }
 
+export const dynamic = "force-dynamic"
+
 export default async function NewAssetPage() {
   return (
     <div className="p-6 max-w-xl">

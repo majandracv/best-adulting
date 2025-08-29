@@ -1,6 +1,8 @@
 import { getSavingsRecords } from "@/lib/actions/price-alerts"
 import { SavingsTracker } from "@/components/price-compare/savings-tracker"
 
+export const dynamic = "force-dynamic"
+
 export default async function SavingsPage() {
   const savingsRecords = await getSavingsRecords()
 

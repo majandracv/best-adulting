@@ -11,6 +11,8 @@ import { AssetTaskManager } from "@/components/assets/asset-task-manager"
 import Image from "next/image"
 import Link from "next/link"
 
+export const dynamic = "force-dynamic"
+
 export default async function AssetDetailsPage({
   params: { id },
 }: {
