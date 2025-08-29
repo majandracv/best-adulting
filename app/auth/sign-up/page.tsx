@@ -44,6 +44,7 @@ export default function SignUpPage() {
 
     try {
       const supabase = createClient()
+      console.log("[v0] Starting sign-up process for email:", email)
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -53,16 +54,26 @@ export default function SignUpPage() {
         },
       })
 
+      console.log("[v0] Sign-up response:", { data, error })
+
       if (error) {
+        console.log("[v0] Sign-up error:", error)
         throw error
       }
 
-      // Store email for resend functionality
-      localStorage.setItem("signup-email", email)
+      console.log("[v0] User data:", data.user)
+      console.log("[v0] Session data:", data.session)
 
-      // Redirect to success page to wait for email confirmation
-      router.push("/auth/sign-up-success")
+      if (data.user) {
+        console.log("[v0] User created successfully, redirecting to dashboard")
+        router.push("/dashboard")
+      } else {
+        console.log("[v0] No user data, redirecting to success page")
+        localStorage.setItem("signup-email", email)
+        router.push("/auth/sign-up-success")
+      }
     } catch (error: unknown) {
+      console.log("[v0] Caught error:", error)
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {
       setIsLoading(false)
