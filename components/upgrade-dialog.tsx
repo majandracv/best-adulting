@@ -1,6 +1,5 @@
 "use client"
 
-import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -18,21 +17,19 @@ interface UpgradeDialogProps {
 }
 
 export function UpgradeDialog({ open, onOpenChange, onUpgrade }: UpgradeDialogProps) {
-  const t = useTranslations("tiers.upgradeDialog")
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-indigo">{t("title")}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
+          <DialogTitle className="text-indigo">Upgrade Required</DialogTitle>
+          <DialogDescription>You've reached your plan limit. Upgrade to continue using this feature.</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("cancel")}
+            Cancel
           </Button>
           <Button onClick={onUpgrade} className="bg-indigo hover:bg-indigo/90 text-white">
-            {t("upgrade")}
+            Upgrade Now
           </Button>
         </DialogFooter>
       </DialogContent>

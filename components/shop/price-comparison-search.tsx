@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,7 +20,6 @@ export function PriceComparisonSearch({ userTier, locale }: PriceComparisonSearc
   const [results, setResults] = useState<any[]>([])
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [searchCount, setSearchCount] = useState(0)
-  const t = useTranslations("shop")
 
   const maxOffers = userTier === "free" ? 2 : 6
 
@@ -135,10 +133,10 @@ export function PriceComparisonSearch({ userTier, locale }: PriceComparisonSearc
         {/* Search Header */}
         <Card className="border-indigo/10">
           <CardHeader>
-            <CardTitle className="text-indigo">{t("title")}</CardTitle>
+            <CardTitle className="text-indigo">Price Comparison</CardTitle>
             <div className="flex items-center gap-2">
               <Badge className="bg-indigo/10 text-indigo border-indigo/20">
-                {userTier === "free" ? t("freeLimit") : t("proFeature")}
+                {userTier === "free" ? "Free users can compare up to 2 offers" : "Pro users get up to 6 offers"}
               </Badge>
               <span className="text-sm text-indigo/60">
                 {searchCount}/{userTier === "free" ? "∞" : "∞"} searches used
@@ -148,7 +146,7 @@ export function PriceComparisonSearch({ userTier, locale }: PriceComparisonSearc
           <CardContent>
             <div className="flex gap-3">
               <Input
-                placeholder={t("search")}
+                placeholder="Search products"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -240,7 +238,7 @@ export function PriceComparisonSearch({ userTier, locale }: PriceComparisonSearc
                     onClick={() => setShowUpgradeDialog(true)}
                     className="bg-indigo hover:bg-indigo/90 text-white"
                   >
-                    {t("upgrade")}
+                    Upgrade to Pro
                   </Button>
                 </CardContent>
               </Card>

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { AlertTriangle, Info } from "lucide-react"
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("")
@@ -21,25 +22,45 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
 
-    if (password !== repeatPassword) {
-      setError("Passwords do not match")
-      setIsLoading(false)
+    // Basic validation first
+    if (!email || !password || !repeatPassword) {
+      setError("Please fill in all fields")
       return
     }
 
+    if (password !== repeatPassword) {
+      setError("Passwords do not match")
+      return
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long")
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
     try {
-      const { error } = await supabase.auth.signUp({
+      const supabase = createClient()
+
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
         },
       })
-      if (error) throw error
+
+      if (error) {
+        throw error
+      }
+
+      // Store email for resend functionality
+      localStorage.setItem("signup-email", email)
+
+      // Redirect to success page to wait for email confirmation
       router.push("/auth/sign-up-success")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
@@ -56,57 +77,89 @@ export default function SignUpPage() {
             <h1 className="text-3xl font-bold text-indigo font-heading">Best Adulting</h1>
             <p className="text-indigo/70 mt-2">Start managing your household like a pro</p>
           </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">Password Security Notice</p>
+                <p>
+                  If your browser shows a password security warning, please use a different, more secure password that
+                  hasn't been found in data breaches.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <Card className="border-indigo/10 shadow-lg">
             <CardHeader>
               <CardTitle className="text-2xl text-indigo">Create Account</CardTitle>
               <CardDescription className="text-indigo/70">Join thousands making adulting easier</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSignUp}>
+              <form onSubmit={handleSignUp} key="signup-form">
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="signup-email" className="text-indigo">
+                    <Label htmlFor="email-input" className="text-indigo">
                       Email
                     </Label>
                     <Input
-                      id="signup-email"
+                      id="email-input"
+                      name="email"
                       type="email"
                       placeholder="you@example.com"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="border-indigo/20 focus:border-lime"
+                      key="email-field"
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="signup-password" className="text-indigo">
+                    <Label htmlFor="password-input" className="text-indigo">
                       Password
                     </Label>
                     <Input
-                      id="signup-password"
+                      id="password-input"
+                      name="password"
                       type="password"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="border-indigo/20 focus:border-lime"
+                      minLength={6}
+                      key="password-field"
                     />
+                    <p className="text-xs text-indigo/60">Use a strong, unique password (minimum 6 characters)</p>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="signup-repeat-password" className="text-indigo">
+                    <Label htmlFor="confirm-password-input" className="text-indigo">
                       Confirm Password
                     </Label>
                     <Input
-                      id="signup-repeat-password"
+                      id="confirm-password-input"
+                      name="confirmPassword"
                       type="password"
                       required
                       value={repeatPassword}
                       onChange={(e) => setRepeatPassword(e.target.value)}
                       className="border-indigo/20 focus:border-lime"
+                      minLength={6}
+                      key="confirm-password-field"
                     />
                   </div>
-                  {error && <p className="text-sm text-red-500">{error}</p>}
-                  <Button type="submit" className="w-full bg-indigo hover:bg-indigo/90 text-white" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Create Account"}
+                  {error && (
+                    <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                      <p className="text-sm text-red-700">{error}</p>
+                    </div>
+                  )}
+                  <Button
+                    type="submit"
+                    className="w-full bg-lime hover:bg-lime/90 text-indigo font-semibold py-3 text-lg"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
                 </div>
                 <div className="mt-4 text-center text-sm text-indigo/70">

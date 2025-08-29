@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,7 +15,6 @@ interface ProviderListProps {
 
 export function ProviderList({ providers, household, locale }: ProviderListProps) {
   const [selectedProvider, setSelectedProvider] = useState<any>(null)
-  const t = useTranslations("booking")
 
   const formatPrice = (cents: number) => {
     return `$${(cents / 100).toFixed(0)}`
@@ -33,7 +31,7 @@ export function ProviderList({ providers, household, locale }: ProviderListProps
       <Card className="border-indigo/10">
         <CardContent className="text-center py-12">
           <Calendar className="w-16 h-16 text-indigo/30 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-indigo mb-2">{t("noProviders")}</h3>
+          <h3 className="text-lg font-semibold text-indigo mb-2">No providers available</h3>
           <p className="text-indigo/60">Check back later for available service providers</p>
         </CardContent>
       </Card>
@@ -43,7 +41,7 @@ export function ProviderList({ providers, household, locale }: ProviderListProps
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-indigo mb-4">{t("providers")}</h2>
+        <h2 className="text-xl font-semibold text-indigo mb-4">Service Providers</h2>
         <div className="grid gap-6">
           {providers.map((provider) => (
             <Card key={provider.id} className="border-indigo/10 hover:shadow-md transition-shadow">
@@ -108,7 +106,7 @@ export function ProviderList({ providers, household, locale }: ProviderListProps
                       onClick={() => setSelectedProvider(provider)}
                       className="bg-indigo hover:bg-indigo/90 text-white"
                     >
-                      {t("requestBooking")}
+                      Request Booking
                     </Button>
                     <Button variant="outline" className="border-indigo/20 text-indigo hover:bg-indigo/5 bg-transparent">
                       View Profile

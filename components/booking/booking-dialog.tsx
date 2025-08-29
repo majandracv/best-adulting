@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -28,7 +27,6 @@ interface BookingDialogProps {
 export function BookingDialog({ provider, household, open, onOpenChange, locale }: BookingDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedTask, setSelectedTask] = useState("")
-  const t = useTranslations("booking")
 
   const handleSubmit = async (formData: FormData) => {
     if (!provider || !household) return
@@ -107,7 +105,7 @@ export function BookingDialog({ provider, household, open, onOpenChange, locale 
             </Button>
             <Button type="submit" disabled={isLoading} className="bg-indigo hover:bg-indigo/90 text-white">
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t("requestBooking")}
+              Request Booking
             </Button>
           </DialogFooter>
         </form>

@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,7 +22,6 @@ export function AssetForm({ household, rooms, locale }: AssetFormProps) {
   const [photoUrl, setPhotoUrl] = useState<string>("")
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const router = useRouter()
-  const t = useTranslations("assets.new")
 
   const handlePhotoUpload = async (file: File) => {
     setIsLoading(true)
@@ -68,13 +66,13 @@ export function AssetForm({ household, rooms, locale }: AssetFormProps) {
     <>
       <Card className="border-indigo/10">
         <CardHeader>
-          <CardTitle className="text-indigo">{t("title")}</CardTitle>
+          <CardTitle className="text-indigo">Add New Asset</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={handleSubmit} className="space-y-6">
             {/* Photo Upload */}
             <div className="space-y-2">
-              <Label>{t("photoUpload")}</Label>
+              <Label>Photo Upload</Label>
               <div className="border-2 border-dashed border-indigo/20 rounded-lg p-6 text-center">
                 {photoUrl ? (
                   <div className="relative">
@@ -111,12 +109,12 @@ export function AssetForm({ household, rooms, locale }: AssetFormProps) {
             {/* Asset Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t("name")} *</Label>
+                <Label htmlFor="name">Name *</Label>
                 <Input id="name" name="name" required className="border-indigo/20" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="room_id">{t("room")} *</Label>
+                <Label htmlFor="room_id">Room *</Label>
                 <Select name="room_id" required>
                   <SelectTrigger className="border-indigo/20">
                     <SelectValue placeholder="Select room" />
@@ -132,32 +130,32 @@ export function AssetForm({ household, rooms, locale }: AssetFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">{t("type")}</Label>
+                <Label htmlFor="type">Type</Label>
                 <Input id="type" name="type" className="border-indigo/20" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="brand">{t("brand")}</Label>
+                <Label htmlFor="brand">Brand</Label>
                 <Input id="brand" name="brand" className="border-indigo/20" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="model">{t("model")}</Label>
+                <Label htmlFor="model">Model</Label>
                 <Input id="model" name="model" className="border-indigo/20" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="serial">{t("serial")}</Label>
+                <Label htmlFor="serial">Serial Number</Label>
                 <Input id="serial" name="serial" className="border-indigo/20" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="purchase_date">{t("purchaseDate")}</Label>
+                <Label htmlFor="purchase_date">Purchase Date</Label>
                 <Input id="purchase_date" name="purchase_date" type="date" className="border-indigo/20" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="warranty_expiry">{t("warrantyExpiry")}</Label>
+                <Label htmlFor="warranty_expiry">Warranty Expiry</Label>
                 <Input id="warranty_expiry" name="warranty_expiry" type="date" className="border-indigo/20" />
               </div>
             </div>
@@ -173,7 +171,7 @@ export function AssetForm({ household, rooms, locale }: AssetFormProps) {
               </Button>
               <Button type="submit" disabled={isLoading} className="bg-indigo hover:bg-indigo/90 text-white">
                 {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {t("save")}
+                Save Asset
               </Button>
             </div>
           </form>
