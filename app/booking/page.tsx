@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { redirect } from "next/navigation"
 import { createServerClient } from "@/lib/supabase/server"
 import { AppLayout } from "@/components/layout/app-layout"
@@ -12,6 +14,10 @@ export default async function BookingPage({
   searchParams: { service?: string; location?: string }
 }) {
   const supabase = createServerClient()
+
+  if (!supabase) {
+    redirect("/auth/login")
+  }
 
   const { data, error } = await supabase.auth.getUser()
   if (error || !data?.user) {
