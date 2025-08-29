@@ -42,7 +42,9 @@ class ErrorReportingService {
 
   constructor() {
     this.sessionId = this.generateSessionId()
-    this.setupGlobalErrorHandlers()
+    if (typeof window !== "undefined") {
+      this.setupGlobalErrorHandlers()
+    }
   }
 
   private generateSessionId(): string {
@@ -54,6 +56,8 @@ class ErrorReportingService {
   }
 
   private setupGlobalErrorHandlers() {
+    if (typeof window === "undefined") return
+
     // Handle unhandled promise rejections
     window.addEventListener("unhandledrejection", (event) => {
       this.reportError(new Error(event.reason), {
@@ -74,6 +78,11 @@ class ErrorReportingService {
   }
 
   async reportError(error: Error, metadata?: Record<string, any>): Promise<void> {
+    if (typeof window === "undefined") {
+      console.error("[v0] Error Report (SSR):", error.message)
+      return
+    }
+
     const errorReport: ErrorReport = {
       id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date().toISOString(),
@@ -120,6 +129,11 @@ class ErrorReportingService {
   }
 
   async submitUserFeedback(feedbackData: Omit<UserFeedback, "id" | "timestamp" | "context">): Promise<void> {
+    if (typeof window === "undefined") {
+      console.log("[v0] User Feedback (SSR):", feedbackData.title)
+      return
+    }
+
     const userFeedback: UserFeedback = {
       id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date().toISOString(),
@@ -159,6 +173,8 @@ class ErrorReportingService {
   }
 
   private showErrorReportDialog(errorReport: ErrorReport) {
+    if (typeof window === "undefined") return
+
     // This would open a dialog with error details
     const details = `
 Error: ${errorReport.error.message}
@@ -173,6 +189,8 @@ Session: ${errorReport.context.sessionId}
   }
 
   getStoredReports(): ErrorReport[] {
+    if (typeof window === "undefined") return []
+
     try {
       return JSON.parse(localStorage.getItem("error_reports") || "[]")
     } catch {
@@ -181,6 +199,8 @@ Session: ${errorReport.context.sessionId}
   }
 
   getStoredFeedback(): UserFeedback[] {
+    if (typeof window === "undefined") return []
+
     try {
       return JSON.parse(localStorage.getItem("user_feedback") || "[]")
     } catch {
@@ -189,6 +209,8 @@ Session: ${errorReport.context.sessionId}
   }
 
   clearStoredData() {
+    if (typeof window === "undefined") return
+
     localStorage.removeItem("error_reports")
     localStorage.removeItem("user_feedback")
     feedback.info("Stored error data cleared")
