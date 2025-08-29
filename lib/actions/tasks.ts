@@ -2,60 +2,37 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import type { TaskInsert, TaskUpdate, TaskLogInsert } from "@/lib/supabase/types"
-
-export async function snoozeTask(taskId: string, days = 1) {
-  const supabase = await createClient()
-
-  const { data: task, error: taskError } = await supabase.from("tasks").select("*").eq("id", taskId).single()
-
-  if (taskError || !task) {
-    throw new Error("Task not found")
-  }
-
-  const currentDue = task.next_due ? new Date(task.next_due) : new Date()
-  const newDue = new Date(currentDue.getTime() + days * 24 * 60 * 60 * 1000)
-
-  const { error } = await supabase
-    .from("tasks")
-    .update({ next_due: newDue.toISOString().split("T")[0] })
-    .eq("id", taskId)
-
-  if (error) {
-    throw new Error(`Failed to snooze task: ${error.message}`)
-  }
-
-  revalidatePath(`/households/${task.household_id}`)
-  revalidatePath("/tasks")
-  revalidatePath("/dashboard")
-  return { success: true }
-}
+import { getTemplateById, calculateNextDueDate } from "@/lib/task-templates"
 
 export async function createTask(formData: FormData) {
   const supabase = await createClient()
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error("User not authenticated")
+  }
+
   const assetId = formData.get("asset_id") as string
   const householdId = formData.get("household_id") as string
   const title = formData.get("title") as string
-  const instructions = formData.get("instructions") as string
-  const frequencyType = formData.get("frequency_type") as string
-  const frequencyValue = formData.get("frequency_value") as string
-  const nextDue = formData.get("next_due") as string
-  const assignedTo = formData.get("assigned_to") as string
+  const description = formData.get("description") as string
+  const frequency = formData.get("frequency") as string
+  const dueDate = formData.get("due_date") as string
 
   if (!householdId || !title) {
     throw new Error("Household ID and task title are required")
   }
 
-  const taskData: TaskInsert = {
+  const taskData = {
     asset_id: assetId || null,
     household_id: householdId,
     title,
-    instructions: instructions || null,
-    frequency_type: frequencyType || null,
-    frequency_value: frequencyValue ? Number.parseInt(frequencyValue) : null,
-    next_due: nextDue || null,
-    assigned_to: assignedTo || null,
+    description: description || null,
+    frequency: frequency || null,
+    due_date: dueDate || null,
+    status: "pending",
   }
 
   const { data, error } = await supabase.from("tasks").insert(taskData).select().single()
@@ -64,42 +41,38 @@ export async function createTask(formData: FormData) {
     throw new Error(`Failed to create task: ${error.message}`)
   }
 
-  revalidatePath(`/households/${householdId}`)
   revalidatePath("/tasks")
   revalidatePath("/dashboard")
   return { success: true, data }
 }
 
-export async function updateTask(id: string, formData: FormData) {
-  const supabase = await createClient()
-
-  const title = formData.get("title") as string
-  const instructions = formData.get("instructions") as string
-  const frequencyType = formData.get("frequency_type") as string
-  const frequencyValue = formData.get("frequency_value") as string
-  const nextDue = formData.get("next_due") as string
-  const assignedTo = formData.get("assigned_to") as string
-  const isArchived = formData.get("is_archived") as string
-
-  const updateData: TaskUpdate = {
-    title: title || undefined,
-    instructions: instructions || null,
-    frequency_type: frequencyType || null,
-    frequency_value: frequencyValue ? Number.parseInt(frequencyValue) : null,
-    next_due: nextDue || null,
-    assigned_to: assignedTo || null,
-    is_archived: isArchived === "true",
+export async function createTaskFromTemplate(templateId: string, assetId: string, householdId: string) {
+  const template = getTemplateById(templateId)
+  if (!template) {
+    throw new Error("Template not found")
   }
 
-  const { data, error } = await supabase.from("tasks").update(updateData).eq("id", id).select().single()
+  const supabase = await createClient()
+  const nextDue = calculateNextDueDate(template.frequency)
+
+  const taskData = {
+    asset_id: assetId,
+    household_id: householdId,
+    title: template.title,
+    description: template.description,
+    frequency: template.frequency,
+    due_date: nextDue.toISOString().split("T")[0],
+    status: "pending",
+  }
+
+  const { data, error } = await supabase.from("tasks").insert(taskData).select().single()
 
   if (error) {
-    throw new Error(`Failed to update task: ${error.message}`)
+    throw new Error(`Failed to create task from template: ${error.message}`)
   }
 
-  revalidatePath(`/households/${data.household_id}`)
   revalidatePath("/tasks")
-  revalidatePath(`/tasks/${id}`)
+  revalidatePath("/dashboard")
   return { success: true, data }
 }
 
@@ -109,7 +82,6 @@ export async function completeTask(taskId: string, formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
   if (!user) {
     throw new Error("User not authenticated")
   }
@@ -123,16 +95,39 @@ export async function completeTask(taskId: string, formData: FormData) {
 
   const timeSpent = formData.get("time_spent_min") as string
   const notes = formData.get("notes") as string
-  const costId = formData.get("cost_id") as string
+  const costAmount = formData.get("cost_amount") as string
+  const costVendor = formData.get("cost_vendor") as string
+  const costCategory = formData.get("cost_category") as string
+
+  let costId = null
+  if (costAmount && Number.parseFloat(costAmount) > 0) {
+    const costData = {
+      household_id: task.household_id,
+      amount_cents: Math.round(Number.parseFloat(costAmount) * 100),
+      currency: "USD",
+      vendor: costVendor || null,
+      category: costCategory || "maintenance",
+      linked_task_id: taskId,
+    }
+
+    const { data: cost, error: costError } = await supabase.from("costs").insert(costData).select().single()
+
+    if (costError) {
+      console.error("Failed to create cost record:", costError)
+    } else {
+      costId = cost.id
+    }
+  }
 
   // Create task log
-  const taskLogData: TaskLogInsert = {
+  const taskLogData = {
     task_id: taskId,
     household_id: task.household_id,
     user_id: user.id,
     time_spent_min: timeSpent ? Number.parseInt(timeSpent) : null,
     notes: notes || null,
-    cost_id: costId || null,
+    cost_id: costId,
+    completed_at: new Date().toISOString(),
   }
 
   const { error: logError } = await supabase.from("task_logs").insert(taskLogData)
@@ -141,24 +136,50 @@ export async function completeTask(taskId: string, formData: FormData) {
     throw new Error(`Failed to log task completion: ${logError.message}`)
   }
 
-  // Update next due date based on frequency
-  if (task.frequency_type && task.frequency_value) {
-    const nextDue = calculateNextDueDate(task.frequency_type, task.frequency_value)
+  // Update task status and calculate next due date if recurring
+  const updateData: any = { status: "completed" }
 
-    await supabase.from("tasks").update({ next_due: nextDue }).eq("id", taskId)
+  if (task.frequency) {
+    const nextDue = calculateNextDueDate(task.frequency)
+    updateData.due_date = nextDue.toISOString().split("T")[0]
+    updateData.status = "pending" // Reset to pending for next occurrence
   }
 
-  revalidatePath(`/households/${task.household_id}`)
+  await supabase.from("tasks").update(updateData).eq("id", taskId)
+
   revalidatePath("/tasks")
-  revalidatePath(`/tasks/${taskId}`)
+  revalidatePath("/dashboard")
+  return { success: true }
+}
+
+export async function snoozeTask(taskId: string, days = 1) {
+  const supabase = await createClient()
+
+  const { data: task, error: taskError } = await supabase.from("tasks").select("*").eq("id", taskId).single()
+
+  if (taskError || !task) {
+    throw new Error("Task not found")
+  }
+
+  const currentDue = task.due_date ? new Date(task.due_date) : new Date()
+  const newDue = new Date(currentDue.getTime() + days * 24 * 60 * 60 * 1000)
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({ due_date: newDue.toISOString().split("T")[0] })
+    .eq("id", taskId)
+
+  if (error) {
+    throw new Error(`Failed to snooze task: ${error.message}`)
+  }
+
+  revalidatePath("/tasks")
+  revalidatePath("/dashboard")
   return { success: true }
 }
 
 export async function deleteTask(id: string) {
   const supabase = await createClient()
-
-  // Get household_id before deletion for revalidation
-  const { data: task } = await supabase.from("tasks").select("household_id").eq("id", id).single()
 
   const { error } = await supabase.from("tasks").delete().eq("id", id)
 
@@ -166,37 +187,7 @@ export async function deleteTask(id: string) {
     throw new Error(`Failed to delete task: ${error.message}`)
   }
 
-  if (task) {
-    revalidatePath(`/households/${task.household_id}`)
-  }
   revalidatePath("/tasks")
   revalidatePath("/dashboard")
   return { success: true }
-}
-
-// Helper function to calculate next due date
-function calculateNextDueDate(frequencyType: string, frequencyValue: number): string {
-  const now = new Date()
-
-  switch (frequencyType) {
-    case "daily":
-      now.setDate(now.getDate() + frequencyValue)
-      break
-    case "weekly":
-      now.setDate(now.getDate() + frequencyValue * 7)
-      break
-    case "monthly":
-      now.setMonth(now.getMonth() + frequencyValue)
-      break
-    case "quarterly":
-      now.setMonth(now.getMonth() + frequencyValue * 3)
-      break
-    case "yearly":
-      now.setFullYear(now.getFullYear() + frequencyValue)
-      break
-    default:
-      return now.toISOString().split("T")[0]
-  }
-
-  return now.toISOString().split("T")[0]
 }

@@ -1,12 +1,74 @@
 {
-  "name": "Best Adulting",
-  "short_name": "Adulting",
-  "start_url": "/",
+  "name": "Best Adulting - Household Management",
+  "short_name": "Best Adulting",
+  "description": "Track assets, manage tasks, and keep your household organized with Best Adulting",
+  "start_url": "/dashboard",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
-  "theme_color": "#23284C",
+  "theme_color": "#10b981",
+  "categories": ["productivity", "lifestyle", "utilities"],
+  "lang": "en-US",
+  "scope": "/",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ]
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "monochrome"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard view on mobile"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard view on desktop"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Task",
+      "short_name": "New Task",
+      "description": "Quickly add a new household task",
+      "url": "/tasks/new",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Add Asset",
+      "short_name": "New Asset",
+      "description": "Add a new household asset",
+      "url": "/assets/new",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Price Compare",
+      "short_name": "Compare",
+      "description": "Compare prices for household items",
+      "url": "/price-compare",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }

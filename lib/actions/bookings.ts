@@ -1,12 +1,11 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import type { BookingInsert, BookingUpdate } from "@/lib/supabase/types"
 
 export async function createBooking(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createServerClient()
 
   const {
     data: { user },
@@ -16,43 +15,58 @@ export async function createBooking(formData: FormData) {
     redirect("/auth/login")
   }
 
-  const providerId = formData.get("provider_id") as string
-  const householdId = formData.get("household_id") as string
-  const taskId = formData.get("task_id") as string
-  const startsAt = formData.get("starts_at") as string
-  const endsAt = formData.get("ends_at") as string
-  const notes = formData.get("notes") as string
-  const priceCents = formData.get("price_cents") as string
+  // Get user's household
+  const { data: member } = await supabase
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", user.id)
+    .single()
 
-  if (!providerId || !householdId || !startsAt) {
-    throw new Error("Provider ID, household ID, and start time are required")
+  if (!member) {
+    throw new Error("User not part of any household")
   }
 
-  const bookingData: BookingInsert = {
+  const providerId = formData.get("provider_id") as string
+  const serviceDate = formData.get("service_date") as string
+  const scheduledStartTime = formData.get("scheduled_start_time") as string
+  const serviceType = formData.get("service_type") as string
+  const estimatedDurationHours = Number.parseInt(formData.get("estimated_duration_hours") as string)
+  const totalCostCents = Number.parseInt(formData.get("total_cost_cents") as string)
+  const customerNotes = formData.get("customer_notes") as string
+  const taskId = (formData.get("task_id") as string) || null
+
+  if (!providerId || !serviceDate || !scheduledStartTime || !serviceType) {
+    throw new Error("Provider, service date, time, and service type are required")
+  }
+
+  const bookingData = {
     provider_id: providerId,
-    household_id: householdId,
-    task_id: taskId || null,
-    requester_id: user.id,
-    starts_at: startsAt,
-    ends_at: endsAt || null,
-    notes: notes || null,
-    price_cents: priceCents ? Number.parseInt(priceCents) : null,
+    household_id: member.household_id,
+    service_date: serviceDate,
+    scheduled_start_time: scheduledStartTime,
+    service_type: serviceType,
+    estimated_duration_hours: estimatedDurationHours,
+    total_cost_cents: totalCostCents,
+    customer_notes: customerNotes,
+    task_id: taskId,
+    status: "pending",
+    notes: customerNotes, // For backward compatibility
   }
 
   const { data, error } = await supabase.from("bookings").insert(bookingData).select().single()
 
   if (error) {
+    console.error("Booking creation error:", error)
     throw new Error(`Failed to create booking: ${error.message}`)
   }
 
-  revalidatePath(`/households/${householdId}`)
-  revalidatePath("/bookings")
+  revalidatePath("/booking")
   revalidatePath("/dashboard")
-  return { success: true, data }
+  redirect(`/booking/confirmation/${data.id}`)
 }
 
 export async function updateBookingStatus(id: string, status: string) {
-  const supabase = await createClient()
+  const supabase = createServerClient()
 
   const { data, error } = await supabase.from("bookings").update({ status }).eq("id", id).select().single()
 
@@ -67,14 +81,14 @@ export async function updateBookingStatus(id: string, status: string) {
 }
 
 export async function updateBooking(id: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createServerClient()
 
   const startsAt = formData.get("starts_at") as string
   const endsAt = formData.get("ends_at") as string
   const notes = formData.get("notes") as string
   const priceCents = formData.get("price_cents") as string
 
-  const updateData: BookingUpdate = {
+  const updateData = {
     starts_at: startsAt || undefined,
     ends_at: endsAt || null,
     notes: notes || null,
@@ -94,7 +108,7 @@ export async function updateBooking(id: string, formData: FormData) {
 }
 
 export async function deleteBooking(id: string) {
-  const supabase = await createClient()
+  const supabase = createServerClient()
 
   // Get household_id before deletion for revalidation
   const { data: booking } = await supabase.from("bookings").select("household_id").eq("id", id).single()
@@ -111,4 +125,69 @@ export async function deleteBooking(id: string) {
   revalidatePath("/bookings")
   revalidatePath("/dashboard")
   return { success: true }
+}
+
+export async function getBookingsForHousehold(householdId: string) {
+  const supabase = createServerClient()
+
+  const { data: bookings, error } = await supabase
+    .from("bookings")
+    .select(`
+      *,
+      providers (
+        id,
+        name,
+        service_type,
+        rating,
+        phone,
+        email
+      ),
+      tasks (
+        id,
+        title,
+        description
+      )
+    `)
+    .eq("household_id", householdId)
+    .order("service_date", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching bookings:", error)
+    return []
+  }
+
+  return bookings || []
+}
+
+export async function getBooking(id: string) {
+  const supabase = createServerClient()
+
+  const { data: booking, error } = await supabase
+    .from("bookings")
+    .select(`
+      *,
+      providers (
+        id,
+        name,
+        service_type,
+        rating,
+        phone,
+        email,
+        profile_image_url
+      ),
+      tasks (
+        id,
+        title,
+        description
+      )
+    `)
+    .eq("id", id)
+    .single()
+
+  if (error) {
+    console.error("Error fetching booking:", error)
+    return null
+  }
+
+  return booking
 }

@@ -23,8 +23,17 @@ export default async function TasksPage() {
     redirect("/dashboard")
   }
 
-  // Declare tasks variable
-  const tasks = []
+  const { data: tasks } = await supabase
+    .from("tasks")
+    .select(`
+      *,
+      assets (
+        id,
+        name
+      )
+    `)
+    .eq("household_id", household.id)
+    .order("due_date", { ascending: true })
 
   return (
     <AppLayout>

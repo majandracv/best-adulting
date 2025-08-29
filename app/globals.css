@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  /* Brand color tokens */
   --ba-indigo-900: #23284c;
   --ba-lavender-300: #cccbfb;
   --ba-aqua-300: #a9dfe6;
@@ -10,8 +11,44 @@
   --ba-lemon-300: #e4e16d;
   --ba-mustard-400: #f1d44b;
   --ba-peach-300: #eaab81;
+
+  /* Updated semantic design tokens for error handling and feedback system */
+  --background: #ffffff;
+  --foreground: #4b5563;
+  --card: #fffbeb;
+  --card-foreground: #4b5563;
+  --popover: #ffffff;
+  --popover-foreground: #4b5563;
+  --primary: #ea580c;
+  --primary-foreground: #ffffff;
+  --secondary: #f97316;
+  --secondary-foreground: #ffffff;
+  --muted: #f8fafc;
+  --muted-foreground: #4b5563;
+  --accent: #f97316;
+  --accent-foreground: #ffffff;
+  --destructive: #c53030;
+  --destructive-foreground: #ffffff;
+  --border: #e5e7eb;
+  --input: #ffffff;
+  --ring: rgba(234, 88, 12, 0.5);
+  --chart-1: #6366f1;
+  --chart-2: #3b82f6;
+  --chart-3: #10b981;
+  --chart-4: #facc15;
+  --chart-5: #f43f5e;
+  --radius: 0.5rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #4b5563;
+  --sidebar-primary: #ea580c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f97316;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: rgba(234, 88, 12, 0.5);
 }
 
 body {
-  color: var(--ba-indigo-900);
+  color: var(--foreground);
+  background-color: var(--background);
 }

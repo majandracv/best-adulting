@@ -1,23 +1,23 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Clock, Store as Snooze, Package, User } from "lucide-react"
+import { CheckCircle, Clock, Store as Snooze, Package, Calendar, Plus, UserCheck } from "lucide-react"
 import { completeTask, snoozeTask } from "@/lib/actions/tasks"
 import { CompleteTaskDialog } from "./complete-task-dialog"
+import { TaskBookingDialog } from "./task-booking-dialog"
+import Link from "next/link"
 
 interface TaskListProps {
   tasks: any[]
-  locale: string
 }
 
-export function TaskList({ tasks, locale }: TaskListProps) {
+export function TaskList({ tasks }: TaskListProps) {
   const [completingTask, setCompletingTask] = useState<string | null>(null)
+  const [bookingTask, setBookingTask] = useState<any | null>(null)
   const [isLoading, setIsLoading] = useState<string | null>(null)
-  const t = useTranslations("tasks")
 
   const handleSnooze = async (taskId: string, days = 1) => {
     setIsLoading(taskId)
@@ -43,8 +43,8 @@ export function TaskList({ tasks, locale }: TaskListProps) {
   }
 
   const getTaskPriority = (task: any) => {
-    if (!task.next_due) return "none"
-    const dueDate = new Date(task.next_due)
+    if (!task.due_date) return "none"
+    const dueDate = new Date(task.due_date)
     const today = new Date()
     const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 
@@ -93,9 +93,21 @@ export function TaskList({ tasks, locale }: TaskListProps) {
       <Card className="border-indigo/10">
         <CardContent className="text-center py-12">
           <CheckCircle className="w-16 h-16 text-indigo/30 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-indigo mb-2">{t("noTasks")}</h3>
-          <p className="text-indigo/60 mb-4">Create your first task to get started</p>
-          <Button className="bg-indigo hover:bg-indigo/90 text-white">Add Task</Button>
+          <h3 className="text-lg font-semibold text-indigo mb-2">No tasks yet</h3>
+          <p className="text-indigo/60 mb-4">Create your first task to get started with household management</p>
+          <div className="flex gap-2 justify-center">
+            <Link href="/tasks/new">
+              <Button className="bg-indigo hover:bg-indigo/90 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Task
+              </Button>
+            </Link>
+            <Link href="/tasks/templates">
+              <Button variant="outline" className="border-indigo/20 text-indigo hover:bg-indigo/5 bg-transparent">
+                Browse Templates
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     )
@@ -123,7 +135,7 @@ export function TaskList({ tasks, locale }: TaskListProps) {
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="font-semibold text-indigo truncate">{task.title}</h3>
                             <Badge className={getPriorityColor(getTaskPriority(task))}>
-                              {task.next_due ? new Date(task.next_due).toLocaleDateString() : "No due date"}
+                              {task.due_date ? new Date(task.due_date).toLocaleDateString() : "No due date"}
                             </Badge>
                           </div>
 
@@ -134,25 +146,38 @@ export function TaskList({ tasks, locale }: TaskListProps) {
                                 <span>{task.assets.name}</span>
                               </div>
                             )}
-                            {task.users_profile && (
+                            {task.frequency && (
                               <div className="flex items-center gap-1">
-                                <User className="w-4 h-4" />
-                                <span>{task.users_profile.full_name}</span>
+                                <Calendar className="w-4 h-4" />
+                                <Badge variant="outline" className="border-indigo/20 text-indigo">
+                                  {task.frequency}
+                                </Badge>
                               </div>
                             )}
-                            {task.frequency_type && (
+                            {task.status && (
                               <Badge variant="outline" className="border-indigo/20 text-indigo">
-                                {task.frequency_type}
+                                {task.status}
                               </Badge>
                             )}
                           </div>
 
-                          {task.instructions && (
-                            <p className="text-sm text-indigo/70 mb-3 line-clamp-2">{task.instructions}</p>
+                          {task.description && (
+                            <p className="text-sm text-indigo/70 mb-3 line-clamp-2">{task.description}</p>
                           )}
                         </div>
 
                         <div className="flex flex-col gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setBookingTask(task)}
+                            disabled={isLoading === task.id}
+                            className="border-primary/20 text-primary hover:bg-primary/5"
+                          >
+                            <UserCheck className="w-4 h-4 mr-1" />
+                            Book Service
+                          </Button>
+
                           <Button
                             size="sm"
                             onClick={() => setCompletingTask(task.id)}
@@ -160,7 +185,7 @@ export function TaskList({ tasks, locale }: TaskListProps) {
                             className="bg-green-600 hover:bg-green-700 text-white"
                           >
                             <CheckCircle className="w-4 h-4 mr-1" />
-                            {t("complete")}
+                            Complete
                           </Button>
                           <Button
                             size="sm"
@@ -170,7 +195,7 @@ export function TaskList({ tasks, locale }: TaskListProps) {
                             className="border-indigo/20 text-indigo hover:bg-indigo/5"
                           >
                             <Snooze className="w-4 h-4 mr-1" />
-                            {t("snooze")}
+                            Snooze
                           </Button>
                         </div>
                       </div>
@@ -189,6 +214,12 @@ export function TaskList({ tasks, locale }: TaskListProps) {
         onOpenChange={(open) => !open && setCompletingTask(null)}
         onComplete={handleComplete}
         isLoading={isLoading === completingTask}
+      />
+
+      <TaskBookingDialog
+        task={bookingTask}
+        open={!!bookingTask}
+        onOpenChange={(open) => !open && setBookingTask(null)}
       />
     </>
   )

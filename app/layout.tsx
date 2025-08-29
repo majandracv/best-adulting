@@ -2,6 +2,9 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter, Poppins } from "next/font/google"
 import "./globals.css"
+import { InstallPrompt } from "@/components/install-prompt"
+import { Toaster } from "@/components/ui/sonner"
+import { FeedbackWidget } from "@/components/feedback/feedback-widget"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,12 +47,13 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#23284C",
+  themeColor: "#10b981",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  colorScheme: "light dark",
 }
 
 export default function RootLayout({
@@ -65,8 +69,17 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Best Adulting" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <link rel="apple-touch-startup-image" href="/icon-512.png" />
       </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased touch-manipulation">
+        {children}
+        <InstallPrompt />
+        <Toaster position="bottom-right" expand={true} richColors={true} closeButton={true} />
+        <FeedbackWidget />
+      </body>
     </html>
   )
 }
