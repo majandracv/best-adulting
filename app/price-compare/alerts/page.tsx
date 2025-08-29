@@ -1,6 +1,8 @@
 import { getPriceAlerts } from "@/lib/actions/price-alerts"
 import { PriceAlertsManager } from "@/components/price-compare/price-alerts-manager"
 
+export const dynamic = "force-dynamic"
+
 export default async function PriceAlertsPage() {
   const alerts = await getPriceAlerts()
 

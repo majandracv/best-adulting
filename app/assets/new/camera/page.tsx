@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Camera, RotateCcw, Check, X, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
+
+export const dynamic = "force-dynamic"
 
 export default function CameraCapturePage() {
   const [isCapturing, setIsCapturing] = useState(false)
@@ -15,6 +17,11 @@ export default function CameraCapturePage() {
   const router = useRouter()
 
   const startCamera = useCallback(async () => {
+    if (typeof window === "undefined" || !navigator?.mediaDevices?.getUserMedia) {
+      console.error("Camera not available in this environment")
+      return
+    }
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -30,7 +37,9 @@ export default function CameraCapturePage() {
       }
     } catch (error) {
       console.error("Error accessing camera:", error)
-      alert("Unable to access camera. Please check permissions.")
+      if (typeof window !== "undefined" && window.alert) {
+        alert("Unable to access camera. Please check permissions.")
+      }
     }
   }, [])
 
@@ -68,19 +77,19 @@ export default function CameraCapturePage() {
 
   const proceedWithImage = useCallback(() => {
     if (capturedImage) {
-      // Store the image in sessionStorage to pass to the form
-      sessionStorage.setItem("capturedAssetImage", capturedImage)
+      if (typeof window !== "undefined" && window.sessionStorage) {
+        sessionStorage.setItem("capturedAssetImage", capturedImage)
+      }
       router.push("/assets/new/ocr-review")
     }
   }, [capturedImage, router])
 
-  // Start camera on component mount
-  useState(() => {
+  useEffect(() => {
     setIsCapturing(true)
     startCamera()
 
     return () => stopCamera()
-  })
+  }, [startCamera, stopCamera])
 
   if (capturedImage) {
     return (
