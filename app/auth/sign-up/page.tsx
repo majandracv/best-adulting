@@ -58,6 +58,10 @@ export default function SignUpPage() {
 
       if (error) {
         console.log("[v0] Sign-up error:", error)
+        if (error.message === "User already registered") {
+          setError("An account with this email already exists. Please sign in instead.")
+          return
+        }
         throw error
       }
 
@@ -74,7 +78,17 @@ export default function SignUpPage() {
       }
     } catch (error: unknown) {
       console.log("[v0] Caught error:", error)
-      setError(error instanceof Error ? error.message : "An error occurred")
+      if (error instanceof Error) {
+        if (error.message.includes("Failed to fetch")) {
+          setError("Connection error. Please check your internet connection and try again.")
+        } else if (error.message === "User already registered") {
+          setError("An account with this email already exists. Please sign in instead.")
+        } else {
+          setError(error.message)
+        }
+      } else {
+        setError("An unexpected error occurred. Please try again.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -162,7 +176,17 @@ export default function SignUpPage() {
                   {error && (
                     <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                       <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                      <p className="text-sm text-red-700">{error}</p>
+                      <div className="text-sm text-red-700">
+                        <p>{error}</p>
+                        {error.includes("already exists") && (
+                          <Link
+                            href="/auth/login"
+                            className="text-red-800 hover:text-red-900 underline underline-offset-2 mt-1 inline-block"
+                          >
+                            Go to sign in page →
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   )}
                   <Button
