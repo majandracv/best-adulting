@@ -7,25 +7,32 @@ const PROTECTED = ["/dashboard", "/assets", "/tasks", "/booking", "/price-compar
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
 
-  // Attach Supabase to this req/res so refreshed tokens are written back
-  const supabase = createMiddlewareClient({ req, res })
+  try {
+    // Attach Supabase to this req/res so refreshed tokens are written back
+    const supabase = createMiddlewareClient({ req, res })
 
-  // This line triggers session refresh if needed and updates the cookie on `res`
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    // This line triggers session refresh if needed and updates the cookie on `res`
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  const path = req.nextUrl.pathname
-  const isProtected = PROTECTED.some((p) => path.startsWith(p))
+    const path = req.nextUrl.pathname
+    const isProtected = PROTECTED.some((p) => path.startsWith(p))
 
-  if (isProtected && !session) {
+    if (isProtected && !session) {
+      const url = req.nextUrl.clone()
+      url.pathname = "/auth/login"
+      url.searchParams.set("redirectedFrom", path)
+      return NextResponse.redirect(url)
+    }
+
+    return res
+  } catch (error) {
+    console.error("Middleware Supabase error:", error)
     const url = req.nextUrl.clone()
     url.pathname = "/auth/login"
-    url.searchParams.set("redirectedFrom", path)
     return NextResponse.redirect(url)
   }
-
-  return res
 }
 
 export const config = {
