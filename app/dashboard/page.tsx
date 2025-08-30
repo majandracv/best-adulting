@@ -1,5 +1,8 @@
+"use client"
+
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { cookies } from "next/headers"
+import { createServerClient } from "@supabase/auth-helpers-nextjs"
 import { AppLayout } from "@/components/layout/app-layout"
 import { PageHeader } from "@/components/layout/page-header"
 import { Container } from "@/components/layout/container"
@@ -31,38 +34,124 @@ import { SmartInsightsWidget } from "@/components/dashboard/smart-insights-widge
 export const dynamic = "force-dynamic"
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
+  console.log("[v0] Dashboard loading - checking authentication")
 
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
+  const debugInfo = {
+    timestamp: new Date().toISOString(),
+    status: "Loading dashboard...",
+  }
+
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: () => cookieStore },
+  )
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
     redirect("/auth/login")
   }
 
-  const [
-    { data: household },
-    { data: assets },
-    { data: tasks },
-    { data: costs },
-    { data: bookings },
-    { data: priceAlerts },
-    { data: savings },
-  ] = await Promise.all([
-    supabase.from("households").select("*").eq("id", data.user.id).single(),
-    supabase.from("assets").select("*").eq("household_id", data.user.id),
-    supabase.from("tasks").select("*").eq("household_id", data.user.id).neq("status", "archived"),
-    supabase
-      .from("costs")
-      .select("*")
-      .eq("household_id", data.user.id)
-      .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
-    supabase.from("bookings").select("*, providers(name)").eq("household_id", data.user.id).limit(10),
-    supabase.from("price_alerts").select("*").eq("user_id", data.user.id).limit(10),
-    supabase.from("savings_records").select("*").eq("user_id", data.user.id).limit(10),
-  ])
+  const user = session.user
+  console.log("[v0] User authenticated, fetching dashboard data for user:", user.id)
 
-  if (!household) {
-    redirect("/auth/login")
+  let household, assets, tasks, costs, bookings, priceAlerts, savings
+
+  try {
+    const [
+      { data: householdData },
+      { data: assetsData },
+      { data: tasksData },
+      { data: costsData },
+      { data: bookingsData },
+      { data: priceAlertsData },
+      { data: savingsData },
+    ] = await Promise.all([
+      supabase.from("households").select("*").eq("id", user.id).single(),
+      supabase.from("assets").select("*").eq("household_id", user.id),
+      supabase.from("tasks").select("*").eq("household_id", user.id).neq("status", "archived"),
+      supabase
+        .from("costs")
+        .select("*")
+        .eq("household_id", user.id)
+        .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+      supabase.from("bookings").select("*, providers(name)").eq("household_id", user.id).limit(10),
+      supabase.from("price_alerts").select("*").eq("user_id", user.id).limit(10),
+      supabase.from("savings_records").select("*").eq("user_id", user.id).limit(10),
+    ])
+
+    household = householdData
+    assets = assetsData
+    tasks = tasksData
+    costs = costsData
+    bookings = bookingsData
+    priceAlerts = priceAlertsData
+    savings = savingsData
+
+    console.log("[v0] Dashboard data fetched:", {
+      household: !!household,
+      assets: assets?.length || 0,
+      tasks: tasks?.length || 0,
+      costs: costs?.length || 0,
+      bookings: bookings?.length || 0,
+      priceAlerts: priceAlerts?.length || 0,
+      savings: savings?.length || 0,
+    })
+
+    if (!household) {
+      console.log("[v0] No household found, creating default household")
+      const { data: newHousehold } = await supabase
+        .from("households")
+        .insert({
+          id: user.id,
+          name: `${user.user_metadata?.full_name || user.email}'s Household`,
+          plan_tier: "free",
+          home_type: "house",
+        })
+        .select()
+        .single()
+
+      household = newHousehold || {
+        id: user.id,
+        name: "Your Household",
+        plan_tier: "free",
+        home_type: "house",
+      }
+    }
+  } catch (error) {
+    console.error("[v0] Dashboard error:", error)
+    return (
+      <AppLayout>
+        <PageHeader title="Dashboard" description="Your household management overview" />
+        <Container>
+          <Card className="border-yellow-200 bg-yellow-50 mb-4">
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-yellow-800 mb-2">Debug Info</h3>
+              <p className="text-sm text-yellow-700">Error occurred: {error?.message || "Unknown error"}</p>
+              <p className="text-xs text-yellow-600">Time: {debugInfo.timestamp}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-destructive/20 bg-destructive/5">
+            <CardContent className="p-6 text-center">
+              <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
+              <h3 className="font-semibold text-destructive mb-2">Unable to Load Dashboard</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                There was an issue connecting to the database. Please try refreshing the page.
+              </p>
+              <Button onClick={() => window.location.reload()}>Refresh Page</Button>
+            </CardContent>
+          </Card>
+        </Container>
+      </AppLayout>
+    )
   }
+
+  console.log("[v0] Dashboard rendering with data")
 
   const overdueTasks =
     tasks?.filter((task) => {
@@ -91,8 +180,16 @@ export default async function DashboardPage() {
 
   return (
     <AppLayout>
+      <div className="bg-green-50 border-b border-green-200 p-2">
+        <Container>
+          <div className="text-xs text-green-700">
+            ✅ Dashboard loaded successfully • User: {user.email} • Time: {debugInfo.timestamp}
+          </div>
+        </Container>
+      </div>
+
       <PageHeader
-        title={`Welcome back, ${data.user.user_metadata?.full_name?.split(" ")[0] || "there"}!`}
+        title={`Welcome back, ${user.user_metadata?.full_name?.split(" ")[0] || "there"}!`}
         description="Your household management overview"
         action={
           <div className="flex gap-2">
